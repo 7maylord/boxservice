@@ -49,5 +49,13 @@ public class BoxController {
     public ResponseEntity<List<Box>> getAvailableBoxes() {
         return ResponseEntity.ok(boxService.getAvailableBoxes());
     }
+
+    // Endpoint to check the battery level of a specific box
+    @GetMapping("/{id}/battery")
+    public ResponseEntity<Integer> getBatteryCapacity(@PathVariable Long id) {
+        int batteryLevel = boxService.getBatteryCapacity(id);
+        return ResponseEntity.ok(batteryLevel);
+    }
+
 }
 

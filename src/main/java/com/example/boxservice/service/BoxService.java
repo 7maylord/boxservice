@@ -75,5 +75,11 @@ public class BoxService {
     public List<Box> getAvailableBoxes() {
         return boxRepository.findByState(BoxState.IDLE);
     }
+
+    public int getBatteryCapacity(Long boxId) {
+        Box box = boxRepository.findById(boxId)
+            .orElseThrow(() -> new ValidationException("Box not found"));
+        return box.getBatteryCapacity();
+    }
 }
 
