@@ -1,0 +1,16 @@
+CREATE TABLE IF NOT EXISTS box (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    txref VARCHAR(20) NOT NULL UNIQUE,
+    weight_limit INT NOT NULL,
+    battery_capacity INT NOT NULL,
+    state VARCHAR(20) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS item (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    weight INT NOT NULL,
+    code VARCHAR(50) NOT NULL UNIQUE,
+    box_id BIGINT,
+    FOREIGN KEY (box_id) REFERENCES box(id)
+);
