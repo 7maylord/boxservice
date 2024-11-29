@@ -1,21 +1,25 @@
 package com.example.boxservice.service;
 
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
 import com.example.boxservice.exception.ValidationException;
 import com.example.boxservice.model.Box;
 import com.example.boxservice.model.BoxState;
 import com.example.boxservice.model.Item;
 import com.example.boxservice.repository.BoxRepository;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
+import com.example.boxservice.repository.ItemRepository;
 
 @Service
 public class BoxService {
 
     private final BoxRepository boxRepository;
+    private final ItemRepository itemRepository;
 
-    public BoxService(BoxRepository boxRepository) {
+    public BoxService(BoxRepository boxRepository, ItemRepository itemRepository) {
         this.boxRepository = boxRepository;
+        this.itemRepository = itemRepository;
     }
 
     public Box createBox(Box box) {
@@ -25,25 +29,43 @@ public class BoxService {
         return boxRepository.save(box);
     }
 
-    public void loadItems(Long boxId, List<Item> items) {
+    public Box loadItems(Long boxId, List<Item> items) {
         Box box = boxRepository.findById(boxId).orElseThrow(() -> new ValidationException("Box not found"));
-
+        
+        // Check if battery level is below 25%
         if (box.getBatteryCapacity() < 25) {
             throw new ValidationException("Battery level too low to load items");
         }
-
-        if (box.getState() != BoxState.LOADING) {
-            throw new ValidationException("Box must be in LOADING state to add items");
+    
+        // Persist each item before adding to the box
+        for (Item item : items) {
+            if (item.getId() == null) { // Only save the item if it's not already saved
+                itemRepository.save(item); // Ensure itemRepository is available
+            }
         }
-
+    
+        // Calculate the total weight of the items to be added
         int totalWeight = items.stream().mapToInt(Item::getWeight).sum();
-        if (totalWeight > box.getWeightLimit()) {
+    
+        // Check if the total weight exceeds the box's weight limit
+        if (box.getWeightLimit() - totalWeight < 0) {
             throw new ValidationException("Items exceed the weight limit of the box");
         }
-
+    
         box.getItems().addAll(items);
-        boxRepository.save(box);
+        box.setState(BoxState.LOADING); 
+    
+        // If the total weight exceeds or matches the box's weight limit, change the state to LOADED
+        if (box.getItems().stream().mapToInt(Item::getWeight).sum() >= box.getWeightLimit()) {
+            box.setState(BoxState.LOADED);
+        } else {
+            box.setState(BoxState.LOADING);  // Set state to LOADING if items are being loaded
+        }
+    
+        // Save the box and return the updated box
+        return boxRepository.save(box);
     }
+    
 
     public List<Item> getItems(Long boxId) {
         Box box = boxRepository.findById(boxId).orElseThrow(() -> new ValidationException("Box not found"));

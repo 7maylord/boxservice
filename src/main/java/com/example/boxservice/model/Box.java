@@ -34,8 +34,8 @@ public class Box {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private BoxState state; // Box state (e.g., IDLE, LOADING)
+    private BoxState state; // Box state (e.g., IDLE, LOADING,LOADED, DELIVERING, DELIVERED, RETURNING)
 
-    @OneToMany(mappedBy = "box", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "box", cascade = CascadeType.PERSIST, orphanRemoval = true)
     private List<Item> items = new ArrayList<>();
 }

@@ -24,23 +24,27 @@ public class BoxController {
     public BoxController(BoxService boxService) {
         this.boxService = boxService;
     }
-
+    //Create a Box
     @PostMapping
     public ResponseEntity<Box> createBox(@RequestBody Box box) {
         return ResponseEntity.ok(boxService.createBox(box));
     }
-
+    //Load item into a Box
     @PutMapping("/{id}/load")
-    public ResponseEntity<Void> loadItems(@PathVariable Long id, @RequestBody List<Item> items) {
-        boxService.loadItems(id, items);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<Box> loadItems(@PathVariable Long id, @RequestBody List<Item> items) {
+        try {
+            Box updatedBox = boxService.loadItems(id, items);
+            return ResponseEntity.ok(updatedBox);
+        } catch (IllegalStateException ex) {
+            return ResponseEntity.badRequest().body(null); // Send 400 Bad Request if validation fails
+        }
     }
-
+    //Get Items in a Box
     @GetMapping("/{id}/items")
     public ResponseEntity<List<Item>> getItems(@PathVariable Long id) {
         return ResponseEntity.ok(boxService.getItems(id));
     }
-
+    //Get Box Details
     @GetMapping("/available")
     public ResponseEntity<List<Box>> getAvailableBoxes() {
         return ResponseEntity.ok(boxService.getAvailableBoxes());
